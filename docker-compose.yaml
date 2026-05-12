@@ -1,0 +1,11 @@
+services:
+  jupiter:
+    build: .
+    container_name: jupiter_lab
+    ports:
+      -"8888:8888"
+    volumes:
+      - .:/app
+    environment:
+      - JUPITER_ENABLE_LAB=yes
+    command: ["jupiter", "lab", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root"]
