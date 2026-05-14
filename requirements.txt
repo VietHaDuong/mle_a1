@@ -2,3 +2,6 @@ numpy
 pandas
 pyspark
 matplotlib
+jupyterlab
+scikit-learn
+seaborn
