@@ -1,11 +1,15 @@
+import os
 from pyspark.sql import SparkSession
 
 def process_bronze_table(spark, input_path, output_path):
     
-    path = input_path + '/*.csv'
+    df = spark.read.csv(input_path, header=True, inferSchema=True)
 
-    df = spark.read.csv(path, header=True, inferSchema=True)
+    name = os.path.splitext(os.path.basename(input_path))[0]
 
-    df.write.option('header', True).partitionBy('snapshot_date').mode('overwrite').csv(output_path)
+    for row in df.select('snapshot_date').distinct().collect():
+        date = row.snapshot_date
+        this = df.filter(df.snapshot_date == date)
+        this.write.parquet(f'{output_path}/{name}_{date}')
 
-
+    
