@@ -11,5 +11,3 @@ def process_bronze_table(spark, input_path, output_path):
         date = row.snapshot_date
         this = df.filter(df.snapshot_date == date)
         this.write.parquet(f'{output_path}/{name}_{date}')
-
-    
