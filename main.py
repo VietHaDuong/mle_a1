@@ -1,6 +1,7 @@
 import os
 from pyspark.sql import SparkSession
 import utils.bronze_preprocess as bp
+import utils.silver_preprocess as sp
 
 def create_session():
     spk = SparkSession.builder \
@@ -23,13 +24,9 @@ def make_bronze_table():
         output_path = os.path.join(bronze_dir, file_name)
         prep = bp.process_bronze_table(create_session(), input_path, output_path)
 
+def make_silver_table():
+    silver_dir = 'datamart/silver'
+    if not os.path.exists(silver_dir):
+        os.makedirs(silver_dir)
 
-# silver_dir = 'datamart/silver'
-# if not os.path.exists(silver_dir):
-#     os.makedirs(silver_dir)
-
-# gold_dir = 'datamart/gold'
-# if not os.path.exists(gold_dir):
-#     os.makedirs(gold_dir)
-
-# print(os.listdir(PATH))
+    sp.process_silver_tables(create_session(), 'datamart/bronze', silver_dir)
