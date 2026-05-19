@@ -4,14 +4,14 @@ from pyspark.sql.functions import regexp_replace, when , col
 
 def clean_lms(spark, input_path, output_path):
     for date in os.listdir(input_path):
-        if date.endswith('.parquet'):
+        if os.path.isdir(os.path.join(input_path, date)):
             this = spark.read.parquet(os.path.join(input_path, date))
             this = this.filter(this['tenure'] == this['installment_num'])
             this.write.parquet(os.path.join(output_path, date))
 
 def clean_attributes(spark, input_path, output_path):
     for date in os.listdir(input_path):
-        if date.endswith('.parquet'): 
+        if os.path.isdir(os.path.join(input_path, date)):
             fa = spark.read.parquet(os.path.join(input_path, date))
             fa = fa.drop('SSN', 'Name')
             fa = fa.withColumn('Age', fa['Age'].cast('integer'))
@@ -35,7 +35,7 @@ def clean_financials(spark, input_path, output_path):
     'Monthly_Balance': 'double'}
     columns_to_replace = ['Num_Credit_Card', 'Num_of_Loan', 'Num_of_Delayed_Payment', 'Delay_from_due_date']
     for date in os.listdir(input_path):
-        if date.endswith('.parquet'):
+        if os.path.isdir(os.path.join(input_path, date)):
             ff = spark.read.parquet(os.path.join(input_path, date))
             ff = ff.replace('_', 'Unknown', subset=['Credit_Mix'])
             ff = ff.replace('!@9#%8', 'Unknown', subset=['Payment_Behaviour'])
@@ -49,12 +49,12 @@ def clean_financials(spark, input_path, output_path):
 
 def pass_through_fc(spark, input_path, output_path):
     for date in os.listdir(input_path):
-        if date.endswith('.parquet'):
+        if os.path.isdir(os.path.join(input_path, date)):
             ff = spark.read.parquet(os.path.join(input_path, date))
             ff.write.parquet(os.path.join(output_path, date))
 
 def process_silver_tables(spark, input_path, output_path):
-    clean_lms(spark, os.path.join(input_path, 'lms'), os.path.join(output_path, 'lms'))
-    clean_attributes(spark, os.path.join(input_path, 'attributes'), os.path.join(output_path, 'attributes'))
-    clean_financials(spark, os.path.join(input_path, 'financials'), os.path.join(output_path, 'financials'))
-    pass_through_fc(spark, os.path.join(input_path, 'fc'), os.path.join(output_path, 'fc'))
+    clean_lms(spark, os.path.join(input_path, 'lms_loan_daily'), os.path.join(output_path, 'lms'))
+    clean_attributes(spark, os.path.join(input_path, 'features_attributes'), os.path.join(output_path, 'attributes'))
+    clean_financials(spark, os.path.join(input_path, 'features_financials'), os.path.join(output_path, 'financials'))
+    pass_through_fc(spark, os.path.join(input_path, 'feature_clickstream'), os.path.join(output_path, 'fc'))
