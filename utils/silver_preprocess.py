@@ -15,6 +15,7 @@ def clean_attributes(spark, input_path, output_path):
             fa = spark.read.parquet(os.path.join(input_path, date))
             fa = fa.drop('SSN', 'Name')
             fa = fa.withColumn('Age', fa['Age'].cast('integer'))
+            fa = fa.withColumn('Age', regexp_replace(col('Age'), '[^0-9]', '').cast('integer'))
             median_age = fa.approxQuantile('Age', [0.5], 0.01)[0]
             fa = fa.withColumn('Age', when((col('Age') < 18) | (col('Age') > 99), median_age).otherwise(col('Age')))
             fa = fa.replace('_______', 'Unknown', subset=['Occupation'])
