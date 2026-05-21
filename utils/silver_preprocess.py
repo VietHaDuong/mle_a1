@@ -5,9 +5,12 @@ from pyspark.sql.functions import regexp_replace, when , col, regexp_extract
 def clean_lms(spark, input_path, output_path, date):
     for folder in os.listdir(input_path):
         if os.path.isdir(os.path.join(input_path, folder)) and (date is None or folder == date):
-            this = spark.read.parquet(os.path.join(input_path, folder))
-            this = this.filter(this['tenure'] == this['installment_num'])
-            this.write.mode('overwrite').parquet(os.path.join(output_path, folder))
+            lms = spark.read.parquet(os.path.join(input_path, folder))
+            lms = lms.withColumn('tenure', col('tenure').cast('integer'))
+            lms = lms.withColumn('installment_num', col('installment_num').cast('integer'))
+            lms = lms.withColumn('loan_amt', col('loan_amt').cast('double'))
+            lms = lms.filter(lms['tenure'] == lms['installment_num'])
+            lms.write.mode('overwrite').parquet(os.path.join(output_path, folder))
 
 def clean_attributes(spark, input_path, output_path, date):
     for folder in os.listdir(input_path):
@@ -50,14 +53,17 @@ def clean_financials(spark, input_path, output_path, date):
             ff = ff.drop('Type_of_Loan')
             ff.write.mode('overwrite').parquet(os.path.join(output_path, folder))
 
-def pass_through_fc(spark, input_path, output_path, date):
+def change_dtype_fc(spark, input_path, output_path, date):
     for folder in os.listdir(input_path):
         if os.path.isdir(os.path.join(input_path, folder)) and (date is None or folder == date):
-            ff = spark.read.parquet(os.path.join(input_path, folder))
-            ff.write.mode('overwrite').parquet(os.path.join(output_path, folder))
+            fc = spark.read.parquet(os.path.join(input_path, folder))
+            fe_cols = [c for c in fc.columns if c.startswith('fe_')]
+            for c in fe_cols:
+                fc = fc.withColumn(c, col(c).cast('integer'))
+            fc.write.mode('overwrite').parquet(os.path.join(output_path, folder))
 
 def process_silver_tables(spark, input_path, output_path, date):
     clean_lms(spark, os.path.join(input_path, 'lms_loan_daily'), os.path.join(output_path, 'lms_loan_daily'), date)
     clean_attributes(spark, os.path.join(input_path, 'features_attributes'), os.path.join(output_path, 'features_attributes'), date)
     clean_financials(spark, os.path.join(input_path, 'features_financials'), os.path.join(output_path, 'features_financials'), date)
-    pass_through_fc(spark, os.path.join(input_path, 'feature_clickstream'), os.path.join(output_path, 'feature_clickstream'), date)
+    change_dtype_fc(spark, os.path.join(input_path, 'feature_clickstream'), os.path.join(output_path, 'feature_clickstream'), date)

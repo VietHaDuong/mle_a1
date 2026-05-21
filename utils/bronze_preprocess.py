@@ -3,7 +3,7 @@ from pyspark.sql import SparkSession
 
 def process_bronze_table(spark, input_path, output_path, date):
     
-    df = spark.read.csv(input_path, header=True, inferSchema=True)
+    df = spark.read.csv(input_path, header=True, inferSchema=False)
 
     name = os.path.splitext(os.path.basename(input_path))[0]
 

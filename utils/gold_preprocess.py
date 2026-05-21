@@ -13,7 +13,8 @@ def join_tables(spark, input_path, output_path, date):
         fc = fc.filter(fc.snapshot_date == date)
         ff = ff.filter(ff.snapshot_date == date)
 
-    feature_table = fa.join(fc, on=['Customer_ID', 'snapshot_date'], how='inner').join(ff, on=['Customer_ID', 'snapshot_date'], how='inner')
+    feature_table = fa.join(fc, on=['Customer_ID', 'snapshot_date'], how='inner').\
+        join(ff, on=['Customer_ID', 'snapshot_date'], how='inner')
     feature_table.write.mode('overwrite').parquet(output_path)
 
 def label_store(spark, input_path, output_path, date):
